@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace ArchPhp\Config;
 
 use ArchPhp\Context\ContextContainer;
-use ArchPhp\Rule\Rule;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\SplFileInfo;
 
@@ -17,12 +16,10 @@ final class ArchPhpConfig
     private ?iterable $files = null;
 
     /**
-     * @param Rule[] $rules
      * @param string[] $paths
      * @param string[] $skipPaths
      */
     public function __construct(
-        private readonly array $rules,
         private readonly array $paths,
         private readonly array $skipPaths,
         private readonly ContextContainer $contextContainer,
@@ -31,14 +28,6 @@ final class ArchPhpConfig
     public function getContextContainer(): ContextContainer
     {
         return $this->contextContainer;
-    }
-
-    /**
-     * @return Rule[]
-     */
-    public function getRules(): array
-    {
-        return $this->rules;
     }
 
     /**

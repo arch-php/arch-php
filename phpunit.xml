@@ -24,6 +24,7 @@
             <directory>config</directory>
         </include>
         <exclude>
+            <directory>src/Resources</directory>
             <directory>src/Test</directory>
         </exclude>
     </source>

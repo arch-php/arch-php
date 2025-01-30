@@ -9,7 +9,7 @@ use function Symfony\Component\String\u;
 
 return function (ContextConfigurator $configurator): void {
     $configurator
-        ->register('string')
+        ->register('string', -1)
         ->setVoter(static function (mixed $value): bool {
             return $value instanceof UnicodeString || is_string($value);
         })

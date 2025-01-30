@@ -5,33 +5,46 @@ declare(strict_types=1);
 namespace ArchPhp\Tests\Config;
 
 use ArchPhp\Config\ArchPhpConfigBuilder;
-use ArchPhp\Rule\Rule;
+use PHPUnit\Framework\Attributes\TestDox;
 use PHPUnit\Framework\TestCase;
 
 final class ArchPhpConfigBuilderTest extends TestCase
 {
+    #[TestDox('Test build config')]
     public function testBuildConfig(): void
     {
         $archPhpConfig = ArchPhpConfigBuilder::configure()
             ->withPaths([dirname(__DIR__) . '/Fixtures'])
             ->skipPath(dirname(__DIR__) . '/Fixtures/Exclude')
-            ->withRules([Rule::classes()])
             ->build();
 
         self::assertNotContains(
             dirname(__DIR__) . '/Fixtures/Exclude/Foo.php',
             $archPhpConfig->getFiles(),
         );
-
-        self::assertCount(1, $archPhpConfig->getRules());
     }
 
+    #[TestDox('Test build config with custom contexts')]
+    public function testBuildConfigWithCustomContexts(): void
+    {
+        $archPhpConfig = ArchPhpConfigBuilder::configure()
+            ->withPaths([dirname(__DIR__) . '/Fixtures'])
+            ->skipPath(dirname(__DIR__) . '/Fixtures/Exclude')
+            ->setContextsDir(dirname(__DIR__) . '/Fixtures/Exclude/config')
+            ->build();
+
+        $assertions = $archPhpConfig->getContextContainer()->getDefinition('type')->getAssertions();
+
+        self::assertArrayHasKey('fake', $assertions);
+        self::assertCount(11, $assertions);
+    }
+
+    #[TestDox('Test context container')]
     public function testContextContainer(): void
     {
         $archPhpConfig = ArchPhpConfigBuilder::configure()
             ->withPaths([dirname(__DIR__) . '/Fixtures'])
             ->skipPath(dirname(__DIR__) . '/Fixtures/Exclude')
-            ->withRules([Rule::classes()])
             ->build();
 
         self::assertTrue($archPhpConfig->getContextContainer()->hasDefinition('class'));

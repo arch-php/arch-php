@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace ArchPhp\Tests\Context\Reflection;
 
-use ArchPhp\Test\AccessorCaseBuilder;
-use ArchPhp\Test\AssertionCaseBuilder;
+use ArchPhp\Test\Builder\Context\ContextBuilder;
 use ArchPhp\Test\ContextTestCase;
 use ArchPhp\Tests\Fixtures\Bar;
 use ArchPhp\Tests\Fixtures\Baz;
@@ -14,221 +13,58 @@ use ArchPhp\Tests\Fixtures\Foo;
 use ArchPhp\Tests\Fixtures\Quux;
 use ArchPhp\Tests\Fixtures\Qux;
 use ArchPhp\Tests\Fixtures\Quxxes;
-use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\TestDox;
 
 final class ClassContextTest extends ContextTestCase
 {
-    /**
-     * @return iterable<string, array{AccessorCaseBuilder}>
-     */
-    public static function provideAccessors(): iterable
+    #[TestDox('Test initializer of class context')]
+    public function testInitializer(): void
     {
-        yield 'name' => [
-            AccessorCaseBuilder::createClass(Foo::class)
-                ->withAccessor('name')
-                ->expectType('string')
-                ->expectValue(Foo::class),
-        ];
-        yield 'shortName' => [
-            AccessorCaseBuilder::createClass(Foo::class)
-                ->withAccessor('shortName')
-                ->expectType('string')
-                ->expectValue('Foo'),
-        ];
-        yield 'namespace' => [
-            AccessorCaseBuilder::createClass(Foo::class)
-                ->withAccessor('namespace')
-                ->expectType('string')
-                ->expectValue('ArchPhp\Tests\Fixtures'),
-        ];
-        yield 'interfaces' => [
-            AccessorCaseBuilder::createClass(Foo::class)
-                ->withAccessor('interfaces')
-                ->expectType('collection[class]')
-                ->expectValue([
-                    Baz::class,
-                    Qux::class,
-                    Corge::class,
-                ]),
-        ];
-        yield 'traits' => [
-            AccessorCaseBuilder::createClass(Foo::class)
-                ->withAccessor('traits')
-                ->expectType('collection[class]')
-                ->expectValue([Quxxes::class]),
-        ];
-        yield 'attributes' => [
-            AccessorCaseBuilder::createClass(Foo::class)
-                ->withAccessor('attributes')
-                ->expectType('collection[attribute]')
-                ->expectValue([Quux::class, Quux::class]),
-        ];
-        yield 'attribute' => [
-            AccessorCaseBuilder::createClass(Foo::class)
-                ->withAccessor('attribute')
-                ->withArgument('attribute', Quux::class)
-                ->expectType('attribute')
-                ->expectValue(Quux::class),
-        ];
-        yield 'properties' => [
-            AccessorCaseBuilder::createClass(Foo::class)
-                ->withAccessor('properties')
-                ->expectType('collection[property]')
-                ->expectValue(['quux', 'garply', 'waldo', 'fooBar', 'grault']),
-        ];
-        yield 'property' => [
-            AccessorCaseBuilder::createClass(Foo::class)
-                ->withAccessor('property')
-                ->withArgument('property', 'quux')
-                ->expectType('property')
-                ->expectValue('quux'),
-        ];
-        yield 'constants' => [
-            AccessorCaseBuilder::createClass(Foo::class)
-                ->withAccessor('constants')
-                ->expectType('collection[class_constant]')
-                ->expectValue(['FRED', 'PLUGH']),
-        ];
-        yield 'constant' => [
-            AccessorCaseBuilder::createClass(Foo::class)
-                ->withAccessor('constant')
-                ->withArgument('constant', 'FRED')
-                ->expectType('class_constant')
-                ->expectValue('FRED'),
-        ];
-        yield 'methods' => [
-            AccessorCaseBuilder::createClass(Foo::class)
-                ->withAccessor('methods')
-                ->expectType('collection[method]')
-                ->expectValue(['__construct', 'waldo', 'xyzzy', 'quux', 'bar', 'baz', 'qux', 'thud', 'foo']),
-        ];
-        yield 'method' => [
-            AccessorCaseBuilder::createClass(Foo::class)
-                ->withAccessor('method')
-                ->withArgument('method', 'waldo')
-                ->expectType('method')
-                ->expectValue('waldo'),
-        ];
-        yield 'parent' => [
-            AccessorCaseBuilder::createClass(Foo::class)
-                ->withAccessor('parent')
-                ->expectType('class')
-                ->expectValue(Bar::class),
-        ];
+        $context = $this->createContext(Foo::class);
+
+        self::assertSame('class', $context->getDefinition()->getId());
     }
 
-    #[DataProvider('provideAccessors')]
-    #[Group('accessors')]
-    public function testAccessors(AccessorCaseBuilder $accessorCaseBuilder): void
+    #[TestDox('Test accessors and assertions of class context')]
+    public function testContext(): void
     {
-        $this->assertAccessor($accessorCaseBuilder);
-    }
+        $contextCase = ContextBuilder::class(Foo::class)
+            ->access('name')->shouldBeString(Foo::class)
+            ->access('shortName')->shouldBeString('Foo')
+            ->access('namespace')->shouldBeString('ArchPhp\Tests\Fixtures')
+            ->access('parent')->shouldBeClass(Bar::class)
+            ->access('interfaces')->shouldBeCollectionOf('class', [Baz::class, Qux::class, Corge::class])
+            ->access('traits')->shouldBeCollectionOf('class', [Quxxes::class])
+            ->access('attributes')->shouldBeCollectionOf('attribute', [Quux::class, Quux::class])
+            ->access('attribute')->withArgument('attribute', Quux::class)->shouldBeAttribute(Quux::class)
+            ->access('constants')->shouldBeCollectionOf('class_constant', ['FRED', 'PLUGH'])
+            ->access('constant')->withArgument('constant', 'FRED')->shouldBeClassConstant('FRED')
+            ->access('properties')->shouldBeCollectionOf('property', ['quux', 'garply', 'waldo', 'fooBar', 'grault'])
+            ->access('property')->withArgument('property', 'quux')->shouldBeProperty('quux')
+            ->access('methods')->shouldBeCollectionOf('method', ['__construct', 'waldo', 'xyzzy', 'quux', 'bar', 'baz', 'qux', 'thud', 'foo'])
+            ->access('method')->withArgument('method', 'waldo')->shouldBeMethod('waldo')
+            ->assert('hasParent')->toBeTrue()
+            ->assert('hasConstructor')->toBeTrue()
+            ->assert('isAbstract')->toBeFalse()
+            ->assert('isCloneable')->toBeTrue()
+            ->assert('isFinal')->toBeTrue()
+            ->assert('isInstantiable')->toBeTrue()
+            ->assert('isInterface')->toBeFalse()
+            ->assert('isInternal')->toBeFalse()
+            ->assert('isIterable')->toBeFalse()
+            ->assert('isReadOnly')->toBeFalse()
+            ->assert('isTrait')->toBeFalse()
+            ->assert('isUserDefined')->toBeTrue()
+            ->assert('isInNamespace')->toBeTrue()
+            ->assert('hasProperty')->withArgument('property', 'quux')->toBeTrue()
+            ->assert('hasAttribute')->withArgument('attribute', Quux::class)->toBeTrue()
+            ->assert('hasConstant')->withArgument('constant', 'FRED')->toBeTrue()
+            ->assert('hasMethod')->withArgument('method', 'waldo')->toBeTrue()
+            ->assert('implementsInterface')->withArgument('interface', Baz::class)->toBeTrue()
+            ->assert('usesTrait')->withArgument('trait', Quxxes::class)->toBeTrue()
+            ->assert('isSubclassOf')->withArgument('class', Bar::class)->toBeTrue()
+        ;
 
-    /**
-     * @return iterable<string, array{AssertionCaseBuilder}>
-     */
-    public static function provideAssertions(): iterable
-    {
-        yield 'hasParent' => [
-            AssertionCaseBuilder::createClass(Foo::class)
-                ->withAssertion('hasParent'),
-        ];
-        yield 'hasConstructor' => [
-            AssertionCaseBuilder::createClass(Foo::class)
-                ->withAssertion('hasConstructor'),
-        ];
-        yield 'isAbstract' => [
-            AssertionCaseBuilder::createClass(Foo::class)
-                ->withAssertion('isAbstract')
-                ->expectToBeFalse(),
-        ];
-        yield 'isCloneable' => [
-            AssertionCaseBuilder::createClass(Foo::class)
-                ->withAssertion('isCloneable'),
-        ];
-        yield 'isFinal' => [
-            AssertionCaseBuilder::createClass(Foo::class)
-                ->withAssertion('isFinal'),
-        ];
-        yield 'isInstantiable' => [
-            AssertionCaseBuilder::createClass(Foo::class)
-                ->withAssertion('isInstantiable'),
-        ];
-        yield 'isInterface' => [
-            AssertionCaseBuilder::createClass(Foo::class)
-                ->withAssertion('isInterface')
-                ->expectToBeFalse(),
-        ];
-        yield 'isInternal' => [
-            AssertionCaseBuilder::createClass(Foo::class)
-                ->withAssertion('isInternal')
-                ->expectToBeFalse(),
-        ];
-        yield 'isIterable' => [
-            AssertionCaseBuilder::createClass(Foo::class)
-                ->withAssertion('isIterable')
-                ->expectToBeFalse(),
-        ];
-        yield 'isReadOnly' => [
-            AssertionCaseBuilder::createClass(Foo::class)
-                ->withAssertion('isReadOnly')
-                ->expectToBeFalse(),
-        ];
-        yield 'isTrait' => [
-            AssertionCaseBuilder::createClass(Foo::class)
-                ->withAssertion('isTrait')
-                ->expectToBeFalse(),
-        ];
-        yield 'isUserDefined' => [
-            AssertionCaseBuilder::createClass(Foo::class)
-                ->withAssertion('isUserDefined'),
-        ];
-        yield 'isInNamespace' => [
-            AssertionCaseBuilder::createClass(Foo::class)
-                ->withAssertion('isInNamespace'),
-        ];
-        yield 'hasAttribute' => [
-            AssertionCaseBuilder::createClass(Foo::class)
-                ->withAssertion('hasAttribute')
-                ->withArgument('attribute', Quux::class),
-        ];
-        yield 'hasProperty' => [
-            AssertionCaseBuilder::createClass(Foo::class)
-                ->withAssertion('hasProperty')
-                ->withArgument('property', 'quux'),
-        ];
-        yield 'hasConstant' => [
-            AssertionCaseBuilder::createClass(Foo::class)
-                ->withAssertion('hasConstant')
-                ->withArgument('constant', 'FRED'),
-        ];
-        yield 'hasMethod' => [
-            AssertionCaseBuilder::createClass(Foo::class)
-                ->withAssertion('hasMethod')
-                ->withArgument('method', 'waldo'),
-        ];
-        yield 'implementsInterface' => [
-            AssertionCaseBuilder::createClass(Foo::class)
-                ->withAssertion('implementsInterface')
-                ->withArgument('interface', Baz::class),
-        ];
-        yield 'usesTrait' => [
-            AssertionCaseBuilder::createClass(Foo::class)
-                ->withAssertion('usesTrait')
-                ->withArgument('trait', Quxxes::class),
-        ];
-        yield 'isSubclassOf' => [
-            AssertionCaseBuilder::createClass(Foo::class)
-                ->withAssertion('isSubclassOf')
-                ->withArgument('class', Bar::class),
-        ];
-    }
-
-    #[DataProvider('provideAssertions')]
-    #[Group('assertions')]
-    public function testAssertions(AssertionCaseBuilder $assertionCaseBuilder): void
-    {
-        $this->assertAssertion($assertionCaseBuilder);
+        $this->assertContext($contextCase);
     }
 }

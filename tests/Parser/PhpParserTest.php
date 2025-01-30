@@ -6,13 +6,13 @@ namespace ArchPhp\Tests\Parser;
 
 use ArchPhp\Parser\PhpParser;
 use PhpParser\Node\Stmt;
-use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\TestDox;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Finder\SplFileInfo;
 
-#[CoversClass(PhpParser::class)]
 final class PhpParserTest extends TestCase
 {
+    #[TestDox('Test parse PHP files')]
     public function testParse(): void
     {
         $phpParser = new PhpParser();

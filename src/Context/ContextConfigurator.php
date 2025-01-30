@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace ArchPhp\Context;
 
+use ArchPhp\Assert\Assert;
+
 class ContextConfigurator
 {
     /**
@@ -11,9 +13,9 @@ class ContextConfigurator
      */
     private array $definitions = [];
 
-    public function register(string $id): ContextDefinition
+    public function register(string $id, int $priority = 0): ContextDefinition
     {
-        return $this->definitions[$id] = new ContextDefinition($id);
+        return $this->definitions[$id] = new ContextDefinition($id, $priority);
     }
 
     /**
@@ -22,5 +24,12 @@ class ContextConfigurator
     public function all(): array
     {
         return $this->definitions;
+    }
+
+    public function get(string $id): ContextDefinition
+    {
+        Assert::keyExists($this->definitions, $id, \sprintf('Context "%s" is not registered.', $id));
+
+        return $this->definitions[$id];
     }
 }

@@ -7,9 +7,10 @@ use ArchPhp\Context\ContextConfigurator;
 
 return function (ContextConfigurator $configurator): void {
     $configurator
-        ->register('enum')
+        ->register('enum', 255)
         ->setVoter(static function (mixed $value): bool {
-            return $value instanceof \ReflectionEnum || ($value instanceof \ReflectionClass && $value->isEnum());
+            return ($value instanceof \ReflectionEnum || ($value instanceof \ReflectionClass && $value->isEnum()))
+                || (is_string($value) && enum_exists($value));
         })
         ->setFormatter(static function (\ReflectionEnum $reflectionEnum): string {
             return $reflectionEnum->getName();
@@ -24,7 +25,7 @@ return function (ContextConfigurator $configurator): void {
             }
 
             if (is_string($objectOfClassName)) {
-                Assert::enumExists($objectOfClassName);
+                Assert::classExists($objectOfClassName, flags: ENUM_FLAG);
             }
 
             return new \ReflectionEnum($objectOfClassName);

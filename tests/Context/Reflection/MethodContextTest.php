@@ -4,128 +4,37 @@ declare(strict_types=1);
 
 namespace ArchPhp\Tests\Context\Reflection;
 
-use ArchPhp\Test\AccessorCaseBuilder;
-use ArchPhp\Test\AssertionCaseBuilder;
+use ArchPhp\Test\Builder\Context\ContextBuilder;
 use ArchPhp\Test\ContextTestCase;
 use ArchPhp\Tests\Fixtures\Foo;
 use ArchPhp\Tests\Fixtures\FooBar;
-use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\TestDox;
 
 final class MethodContextTest extends ContextTestCase
 {
-    /**
-     * @return iterable<string, array{AccessorCaseBuilder}>
-     */
-    public static function provideAccessors(): iterable
+    #[TestDox('Test accessors and assertions of method context')]
+    public function testContext(): void
     {
-        yield 'name' => [
-            AccessorCaseBuilder::createMethod(Foo::class, 'waldo')
-                ->withAccessor('name')
-                ->expectType('string')
-                ->expectValue('waldo'),
-        ];
-        yield 'class' => [
-            AccessorCaseBuilder::createMethod(Foo::class, 'waldo')
-                ->withAccessor('class')
-                ->expectType('class')
-                ->expectValue(Foo::class),
-        ];
-        yield 'returnType' => [
-            AccessorCaseBuilder::createMethod(Foo::class, 'waldo')
-                ->withAccessor('returnType')
-                ->expectType('type')
-                ->expectValue('void'),
-        ];
-        yield 'parameters' => [
-            AccessorCaseBuilder::createMethod(Foo::class, 'waldo')
-                ->withAccessor('parameters')
-                ->expectType('collection[parameter]')
-                ->expectValue(['bar']),
-        ];
-        yield 'parameter' => [
-            AccessorCaseBuilder::createMethod(Foo::class, 'waldo')
-                ->withAccessor('parameter')
-                ->withArgument('parameter', 'bar')
-                ->expectType('parameter')
-                ->expectValue('bar'),
-        ];
-        yield 'attributes' => [
-            AccessorCaseBuilder::createMethod(Foo::class, 'waldo')
-                ->withAccessor('attributes')
-                ->expectType('collection[attribute]')
-                ->expectValue([FooBar::class]),
-        ];
-        yield 'attribute' => [
-            AccessorCaseBuilder::createMethod(Foo::class, 'waldo')
-                ->withAccessor('attribute')
-                ->withArgument('attribute', FooBar::class)
-                ->expectType('attribute')
-                ->expectValue(FooBar::class),
-        ];
-    }
+        $contextCase = ContextBuilder::class(Foo::class)
+            ->method('waldo')
+            ->access('name')->shouldBeString('waldo')
+            ->access('returnType')->shouldBeType('void')
+            ->access('class')->shouldBeClass(Foo::class)
+            ->access('attributes')->shouldBeCollectionOf('attribute', [FooBar::class])
+            ->access('attribute')->withArgument('attribute', FooBar::class)->shouldBeAttribute(FooBar::class)
+            ->access('parameters')->shouldBeCollectionOf('parameter', ['bar'])
+            ->access('parameter')->withArgument('parameter', 'bar')->shouldBeParameter('bar')
+            ->assert('hasParameter')->withArgument('parameter', 'bar')->toBeTrue()
+            ->assert('hasReturnType')->toBeTrue()
+            ->assert('isAbstract')->toBeFalse()
+            ->assert('isPrivate')->toBeFalse()
+            ->assert('isConstructor')->toBeFalse()
+            ->assert('isDestructor')->toBeFalse()
+            ->assert('isProtected')->toBeFalse()
+            ->assert('isPublic')->toBeTrue()
+            ->assert('isStatic')->toBeFalse()
+        ;
 
-    #[DataProvider('provideAccessors')]
-    #[Group('accessors')]
-    public function testAccessors(AccessorCaseBuilder $accessorCaseBuilder): void
-    {
-        $this->assertAccessor($accessorCaseBuilder);
-    }
-
-    /**
-     * @return iterable<string, array{AssertionCaseBuilder}>
-     */
-    public static function provideAssertions(): iterable
-    {
-        yield 'hasParameter' => [
-            AssertionCaseBuilder::createMethod(Foo::class, 'waldo')
-                ->withAssertion('hasParameter')
-                ->withArgument('parameter', 'bar'),
-        ];
-        yield 'hasReturnType' => [
-            AssertionCaseBuilder::createMethod(Foo::class, 'waldo')
-                ->withAssertion('hasReturnType'),
-        ];
-        yield 'isAbstract' => [
-            AssertionCaseBuilder::createMethod(Foo::class, 'waldo')
-                ->withAssertion('isAbstract')
-                ->expectToBeFalse(),
-        ];
-        yield 'isPrivate' => [
-            AssertionCaseBuilder::createMethod(Foo::class, 'waldo')
-                ->withAssertion('isPrivate')
-                ->expectToBeFalse(),
-        ];
-        yield 'isConstructor' => [
-            AssertionCaseBuilder::createMethod(Foo::class, 'waldo')
-                ->withAssertion('isConstructor')
-                ->expectToBeFalse(),
-        ];
-        yield 'isDestructor' => [
-            AssertionCaseBuilder::createMethod(Foo::class, 'waldo')
-                ->withAssertion('isDestructor')
-                ->expectToBeFalse(),
-        ];
-        yield 'isProtected' => [
-            AssertionCaseBuilder::createMethod(Foo::class, 'waldo')
-                ->withAssertion('isProtected')
-                ->expectToBeFalse(),
-        ];
-        yield 'isPublic' => [
-            AssertionCaseBuilder::createMethod(Foo::class, 'waldo')
-                ->withAssertion('isPublic'),
-        ];
-        yield 'isStatic' => [
-            AssertionCaseBuilder::createMethod(Foo::class, 'waldo')
-                ->withAssertion('isStatic')
-                ->expectToBeFalse(),
-        ];
-    }
-
-    #[DataProvider('provideAssertions')]
-    #[Group('assertions')]
-    public function testAssertions(AssertionCaseBuilder $assertionCaseBuilder): void
-    {
-        $this->assertAssertion($assertionCaseBuilder);
+        $this->assertContext($contextCase);
     }
 }

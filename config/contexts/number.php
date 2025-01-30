@@ -7,7 +7,7 @@ use Brick\Math\BigInteger;
 
 return function (ContextConfigurator $configurator): void {
     $configurator
-        ->register('number')
+        ->register('number', -1)
         ->setVoter(static function (mixed $value): bool {
             return $value instanceof BigInteger || is_int($value);
         })

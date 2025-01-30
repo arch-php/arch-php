@@ -34,7 +34,7 @@ final class ContextDefinition
      */
     private ?Closure $voter = null;
 
-    public function __construct(private string $id) {}
+    public function __construct(private string $id, private int $priority) {}
 
     public function supports(mixed $value): bool
     {
@@ -136,5 +136,26 @@ final class ContextDefinition
     public function guessType(Context $context): string
     {
         return $this->container->guessType($context);
+    }
+
+    /**
+     * @return array<string, Accessor>
+     */
+    public function getAccessors(): array
+    {
+        return $this->accessors;
+    }
+
+    /**
+     * @return array<string, Assertion>
+     */
+    public function getAssertions(): array
+    {
+        return $this->assertions;
+    }
+
+    public function getPriority(): int
+    {
+        return $this->priority;
     }
 }
