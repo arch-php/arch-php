@@ -19,9 +19,10 @@ abstract class Accessor
         protected readonly string $name,
         protected readonly string $type,
         protected readonly Closure $callback,
+        protected readonly bool $memoizable,
     ) {}
 
-    public static function create(string $name, string $type, Closure $callback): Accessor
+    public static function create(string $name, string $type, Closure $callback, bool $memoizable = true): Accessor
     {
         Assert::regex(
             $type,
@@ -31,19 +32,24 @@ abstract class Accessor
         $type = u($type);
 
         if ([] !== $type->match('/^[a-z_]+$/')) {
-            return new NamedAccessor($name, $type->toString(), $callback);
+            return new NamedAccessor($name, $type->toString(), $callback, $memoizable);
         }
 
         if ([] !== $type->match('/^[a-z_]+\|[a-z_]+(?:\|[a-z_]+)*$/')) {
-            return new UnionAccessor($name, $type->toString(), $callback);
+            return new UnionAccessor($name, $type->toString(), $callback, $memoizable);
         }
 
-        return new CollectionAccessor($name, $type->toString(), $callback);
+        return new CollectionAccessor($name, $type->toString(), $callback, $memoizable);
     }
 
     public function compile(ContextContainer $container): void
     {
         $this->container = $container;
+    }
+
+    public function isMemoizable(): bool
+    {
+        return $this->memoizable;
     }
 
     /**

@@ -69,12 +69,12 @@ final class ContextDefinition
         return $this;
     }
 
-    public function addAccessor(string $name, string $type, Closure $callback): self
+    public function addAccessor(string $name, string $type, Closure $callback, bool $memoizable = true): self
     {
         Assert::keyNotExists($this->assertions, $name, sprintf('An assertion "%s" already exists.', $name));
         Assert::keyNotExists($this->accessors, $name, sprintf('The accessor "%s" already exists.', $name));
 
-        $this->accessors[$name] = Accessor::create($name, $type, $callback);
+        $this->accessors[$name] = Accessor::create($name, $type, $callback, $memoizable);
 
         return $this;
     }

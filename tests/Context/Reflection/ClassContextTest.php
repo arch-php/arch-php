@@ -67,4 +67,40 @@ final class ClassContextTest extends ContextTestCase
 
         $this->assertContext($contextCase);
     }
+
+    #[TestDox('Test memoized with args')]
+    public function testMemoizedWithArgs(): void
+    {
+        $context = $this->createContext(Foo::class);
+
+        $accessors = new \ReflectionProperty($context, 'accessors');
+        $calls = new \ReflectionProperty($context, 'accessorsCalls');
+
+        $assertAccessor = static function (string $key, string $accessor, string $arg, string $value, int $expectedCalls) use ($context, $accessors, $calls): void {
+            $contextWaldo = $context->access($accessor, [$arg => $value]);
+
+            self::assertNotNull($contextWaldo);
+
+            $methodWaldo = $contextWaldo->getValue();
+
+            self::assertInstanceOf(\ReflectionMethod::class, $methodWaldo);
+
+            self::assertSame($value, $methodWaldo->getName());
+
+            $accessors = $accessors->getValue($context);
+
+            self::assertIsArray($accessors);
+            self::assertArrayHasKey($key, $accessors);
+
+            $calls = $calls->getValue($context);
+
+            self::assertIsArray($calls);
+            self::assertArrayHasKey($key, $calls);
+            self::assertSame($expectedCalls, $calls[$key]);
+        };
+
+        $assertAccessor('method?method=waldo', 'method', 'method', 'waldo', 1);
+        $assertAccessor('method?method=xyzzy', 'method', 'method', 'xyzzy', 1);
+        $assertAccessor('method?method=waldo', 'method', 'method', 'waldo', 2);
+    }
 }

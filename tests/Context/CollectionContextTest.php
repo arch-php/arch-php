@@ -22,4 +22,32 @@ final class CollectionContextTest extends ContextTestCase
 
         $this->assertContext($contextCase);
     }
+
+    #[TestDox('Test non memoized filter')]
+    public function testNonMemoizedFilter(): void
+    {
+        $context = $this->createContext([
+            $this->createContext(Foo::class),
+            $this->createContext(Baz::class),
+        ]);
+
+        self::assertSame('collection[class]', $context->guessType());
+
+        $reflectionProperty = new \ReflectionProperty($context, 'accessors');
+
+        $filtered = $context->access('filter', ['callback' => static fn(): true => true]);
+
+        self::assertNotNull($filtered);
+
+        $count = $filtered->access('count', []);
+
+        self::assertNotNull($count);
+
+        self::assertSame(2, $count->getFormattedValue());
+
+        $accessors = $reflectionProperty->getValue($context);
+
+        self::assertIsArray($accessors);
+        self::assertArrayNotHasKey('filter?', $accessors);
+    }
 }
