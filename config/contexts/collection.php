@@ -25,7 +25,7 @@ return function (ContextConfigurator $configurator): void {
 
             return Collection::fromIterable(
                 array_map(
-                    $container->createContext(...),
+                    static fn(mixed $item): Context => $item instanceof Context ? $item : $container->createContext($item),
                     $value,
                 ),
             );
@@ -35,6 +35,7 @@ return function (ContextConfigurator $configurator): void {
             'filter',
             'collection',
             fn(Closure $callback) => $this->filter($callback),
+            false,
         )
     ;
 };

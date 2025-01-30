@@ -12,6 +12,11 @@ final class Context
     private array $accessors = [];
 
     /**
+     * @var array<string, int>
+     */
+    private array $accessorsCalls = [];
+
+    /**
      * @var array<string, bool>
      */
     private array $assertions = [];
@@ -36,11 +41,20 @@ final class Context
      */
     public function access(string $accessor, array $args): ?Context
     {
-        if (!isset($this->accessors[$accessor])) {
-            $this->accessors[$accessor] = $this->definition->getAccessor($accessor)->call($this, $args);
+        if (!$this->definition->getAccessor($accessor)->isMemoizable()) {
+            return $this->definition->getAccessor($accessor)->call($this, $args);
         }
 
-        return $this->accessors[$accessor];
+        $name = \sprintf('%s?%s', $accessor, http_build_query($args));
+
+        if (!isset($this->accessors[$name])) {
+            $this->accessors[$name] = $this->definition->getAccessor($accessor)->call($this, $args);
+            $this->accessorsCalls[$name] = 0;
+        }
+
+        $this->accessorsCalls[$name]++;
+
+        return $this->accessors[$name];
     }
 
     public function getDefinition(): ContextDefinition
@@ -58,10 +72,12 @@ final class Context
      */
     public function assert(string $assertion, array $args): bool
     {
-        if (!isset($this->assertions[$assertion])) {
-            $this->assertions[$assertion] = $this->definition->getAssertion($assertion)->call($this, $args);
+        $name = \sprintf('%s?%s', $assertion, http_build_query($args));
+
+        if (!isset($this->assertions[$name])) {
+            $this->assertions[$name] = $this->definition->getAssertion($assertion)->call($this, $args);
         }
 
-        return $this->assertions[$assertion];
+        return $this->assertions[$name];
     }
 }

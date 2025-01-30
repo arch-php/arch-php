@@ -15,14 +15,14 @@ final class UnionAccessor extends Accessor
      */
     private readonly array $accessors;
 
-    public function __construct(string $name, string $type, Closure $callback)
+    public function __construct(string $name, string $type, Closure $callback, bool $memoizable)
     {
-        parent::__construct($name, $type, $callback);
+        parent::__construct($name, $type, $callback, $memoizable);
 
         $accessors = [];
 
         foreach (explode('|', $type) as $subType) {
-            $accessors[$subType] = new NamedAccessor($name, $subType, $callback);
+            $accessors[$subType] = new NamedAccessor($name, $subType, $callback, $memoizable);
         }
 
         $this->accessors = $accessors;
