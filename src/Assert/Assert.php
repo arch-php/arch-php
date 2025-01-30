@@ -6,39 +6,31 @@ namespace ArchPhp\Assert;
 
 use Webmozart\Assert\Assert as WebmozartAssert;
 
+use function ArchPhp\global_class_exists;
+
 final class Assert extends WebmozartAssert
 {
     /**
      * @phpstan-assert class-string $value
      */
-    public static function classExists($value, $message = '', bool $acceptEnum = true): void
+    public static function classExists($value, $message = '', int $flags = 0): void
     {
         self::string($value);
 
-        if ('' === $message) {
-            $message = \sprintf('Class "%s" does not exist.', $value);
-        }
+        $result = global_class_exists($value, $flags);
 
-        parent::true(
-            class_exists($value)
-            || interface_exists($value)
-            || trait_exists($value)
-            || ($acceptEnum && enum_exists($value)),
-            $message,
-        );
+        parent::true($result, $message);
     }
 
     /**
-     * @phpstan-assert class-string $value
+     * @phpstan-assert array<class-string> $value
      */
-    public static function enumExists(mixed $value, string $message = ''): void
+    public static function allClassExists($value, $message = '', int $flags = 0): void
     {
-        self::string($value);
+        static::isIterable($value);
 
-        if ('' === $message) {
-            $message = \sprintf('Enum "%s" does not exist.', $value);
+        foreach ($value as $v) {
+            self::classExists($v, $message, $flags);
         }
-
-        parent::true(enum_exists($value), $message);
     }
 }

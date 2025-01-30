@@ -48,6 +48,6 @@ final class UnionAccessor extends Accessor
             }
         }
 
-        throw new \InvalidArgumentException('No accessor found');
+        throw new \InvalidArgumentException('No accessor found'); // @codeCoverageIgnore
     }
 }

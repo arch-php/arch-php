@@ -10,8 +10,6 @@ parameters:
     paths:
         - src/
         - tests/
-    stubFiles:
-        - .arch.stub
     tmpDir: var/cache/phpstan
     type_perfect:
         no_mixed_property: true
@@ -20,8 +18,6 @@ parameters:
         narrow_param: true
         narrow_return: true
     ignoreErrors:
-        -
-            identifier: new.static
         - '#class Reflection#'
     excludePaths:
         analyseAndScan:

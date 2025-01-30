@@ -4,39 +4,22 @@ declare(strict_types=1);
 
 namespace ArchPhp\Tests\Context;
 
-use ArchPhp\Test\AccessorCaseBuilder;
+use ArchPhp\Test\Builder\Context\ContextBuilder;
 use ArchPhp\Test\ContextTestCase;
 use ArchPhp\Tests\Fixtures\Baz;
 use ArchPhp\Tests\Fixtures\Foo;
-use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\TestDox;
 
 final class CollectionContextTest extends ContextTestCase
 {
-    /**
-     * @return iterable<string, array{AccessorCaseBuilder}>
-     */
-    public static function provideAccessors(): iterable
+    #[TestDox('Test accessors and assertions of collection context')]
+    public function testContext(): void
     {
-        yield 'count' => [
-            AccessorCaseBuilder::createClassCollection([Foo::class, Baz::class])
-                ->withAccessor('count')
-                ->expectType('number')
-                ->expectValue(2),
-        ];
-        yield 'filter' => [
-            AccessorCaseBuilder::createClassCollection([Foo::class, Baz::class])
-                ->withAccessor('filter')
-                ->withArgument('callback', static fn(): true => true)
-                ->expectType('collection[class]')
-                ->expectValue([Foo::class, Baz::class]),
-        ];
-    }
+        $contextCase = ContextBuilder::classes(Foo::class, Baz::class)
+            ->access('count')->shouldBeNumber(2)
+            ->access('filter')->withArgument('callback', static fn(): true => true)->shouldBeCollectionOf('class', [Foo::class, Baz::class])
+        ;
 
-    #[DataProvider('provideAccessors')]
-    #[Group('accessors')]
-    public function testAccessors(AccessorCaseBuilder $accessorCaseBuilder): void
-    {
-        $this->assertAccessor($accessorCaseBuilder);
+        $this->assertContext($contextCase);
     }
 }

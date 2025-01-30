@@ -5,11 +5,14 @@ declare(strict_types=1);
 use ArchPhp\Assert\Assert;
 use ArchPhp\Context\ContextConfigurator;
 
+use function ArchPhp\global_class_exists;
+
 return function (ContextConfigurator $configurator): void {
     $configurator
-        ->register('class')
+        ->register('class', 254)
         ->setVoter(static function (mixed $value): bool {
-            return $value instanceof \ReflectionClass && !$value instanceof \ReflectionEnum;
+            return ($value instanceof \ReflectionClass && !$value instanceof \ReflectionEnum)
+                || (is_string($value) && global_class_exists($value, flags: CLASS_FLAG | INTERFACE_FLAG | TRAIT_FLAG));
         })
         ->setFormatter(static function (\ReflectionClass $reflectionClass): string {
             return $reflectionClass->getName();
@@ -20,7 +23,7 @@ return function (ContextConfigurator $configurator): void {
             }
 
             if (is_string($objectOfClassName)) {
-                Assert::classExists($objectOfClassName, acceptEnum: false);
+                Assert::classExists($objectOfClassName, flags: CLASS_FLAG | INTERFACE_FLAG | TRAIT_FLAG);
             }
 
             return new \ReflectionClass($objectOfClassName);

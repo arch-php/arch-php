@@ -4,138 +4,57 @@ declare(strict_types=1);
 
 namespace ArchPhp\Tests\Context\Reflection;
 
-use ArchPhp\Test\AccessorCaseBuilder;
-use ArchPhp\Test\AssertionCaseBuilder;
+use ArchPhp\Test\Builder\Context\ContextBuilder;
 use ArchPhp\Test\ContextTestCase;
+use ArchPhp\Tests\Fixtures\Baz;
 use ArchPhp\Tests\Fixtures\Grault;
 use ArchPhp\Tests\Fixtures\Quux;
-use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\TestDox;
 
 final class EnumContextTest extends ContextTestCase
 {
-    /**
-     * @return iterable<string, array{AccessorCaseBuilder}>
-     */
-    public static function provideAccessors(): iterable
+    #[TestDox('Test initializer of class context')]
+    public function testInitializer(): void
     {
-        yield 'name' => [
-            AccessorCaseBuilder::createEnum(Grault::class)
-                ->withAccessor('name')
-                ->expectType('string')
-                ->expectValue(Grault::class),
-        ];
-        yield 'shortName' => [
-            AccessorCaseBuilder::createEnum(Grault::class)
-                ->withAccessor('shortName')
-                ->expectType('string')
-                ->expectValue('Grault'),
-        ];
-        yield 'namespace' => [
-            AccessorCaseBuilder::createEnum(Grault::class)
-                ->withAccessor('namespace')
-                ->expectType('string')
-                ->expectValue('ArchPhp\Tests\Fixtures'),
-        ];
-        yield 'type' => [
-            AccessorCaseBuilder::createEnum(Grault::class)
-                ->withAccessor('type')
-                ->expectType('type')
-                ->expectValue('string'),
-        ];
-        yield 'cases' => [
-            AccessorCaseBuilder::createEnum(Grault::class)
-                ->withAccessor('cases')
-                ->expectType('collection[enum_case]')
-                ->expectValue(['Foo', 'Bar']),
-        ];
-        yield 'case' => [
-            AccessorCaseBuilder::createEnum(Grault::class)
-                ->withAccessor('case')
-                ->withArgument('case', 'Foo')
-                ->expectType('enum_case')
-                ->expectValue('Foo'),
-        ];
-        yield 'attributes' => [
-            AccessorCaseBuilder::createEnum(Grault::class)
-                ->withAccessor('attributes')
-                ->expectType('collection[attribute]')
-                ->expectValue([Quux::class]),
-        ];
-        yield 'attribute' => [
-            AccessorCaseBuilder::createEnum(Grault::class)
-                ->withAccessor('attribute')
-                ->withArgument('attribute', Quux::class)
-                ->expectType('attribute')
-                ->expectValue(Quux::class),
-        ];
-        yield 'constants' => [
-            AccessorCaseBuilder::createEnum(Grault::class)
-                ->withAccessor('constants')
-                ->expectType('collection[class_constant]')
-                ->expectValue(['FRED']),
-        ];
-        yield 'constant' => [
-            AccessorCaseBuilder::createEnum(Grault::class)
-                ->withAccessor('constant')
-                ->withArgument('constant', 'FRED')
-                ->expectType('class_constant')
-                ->expectValue('FRED'),
-        ];
-        yield 'methods' => [
-            AccessorCaseBuilder::createEnum(Grault::class)
-                ->withAccessor('methods')
-                ->expectType('collection[method]')
-                ->expectValue(['waldo', 'cases', 'from', 'tryFrom']),
-        ];
-        yield 'method' => [
-            AccessorCaseBuilder::createEnum(Grault::class)
-                ->withAccessor('method')
-                ->withArgument('method', 'waldo')
-                ->expectType('method')
-                ->expectValue('waldo'),
-        ];
-        yield 'interfaces' => [
-            AccessorCaseBuilder::createEnum(Grault::class)
-                ->withAccessor('interfaces')
-                ->expectType('empty')
-                ->expectValue([]),
-        ];
-        yield 'traits' => [
-            AccessorCaseBuilder::createEnum(Grault::class)
-                ->withAccessor('traits')
-                ->expectType('empty')
-                ->expectValue([]),
-        ];
+        $context = $this->createContext(Grault::class);
+
+        self::assertSame('enum', $context->getDefinition()->getId());
+
+        $context = $this->createContext(new \ReflectionClass(Grault::class));
+
+        self::assertSame('enum', $context->getDefinition()->getId());
     }
 
-    #[DataProvider('provideAccessors')]
-    #[Group('accessors')]
-    public function testAccessors(AccessorCaseBuilder $accessorCaseBuilder): void
+    #[TestDox('Test accessors and assertions of enum context')]
+    public function testContext(): void
     {
-        $this->assertAccessor($accessorCaseBuilder);
-    }
+        $contextCase = ContextBuilder::enum(Grault::class)
+            ->access('name')->shouldBeString(Grault::class)
+            ->access('shortName')->shouldBeString('Grault')
+            ->access('namespace')->shouldBeString('ArchPhp\Tests\Fixtures')
+            ->access('type')->shouldBeType('string')
+            ->access('interfaces')->shouldBeEmpty()
+            ->access('traits')->shouldBeEmpty()
+            ->access('attributes')->shouldBeCollectionOf('attribute', [Quux::class])
+            ->access('attribute')->withArgument('attribute', Quux::class)->shouldBeAttribute(Quux::class)
+            ->access('constants')->shouldBeCollectionOf('class_constant', ['FRED'])
+            ->access('constant')->withArgument('constant', 'FRED')->shouldBeClassConstant('FRED')
+            ->access('cases')->shouldBeCollectionOf('enum_case', ['Foo', 'Bar'])
+            ->access('case')->withArgument('case', 'Foo')->shouldBeEnumCase('Foo')
+            ->access('methods')->shouldBeCollectionOf('method', ['waldo', 'cases', 'from', 'tryFrom'])
+            ->access('method')->withArgument('method', 'waldo')->shouldBeMethod('waldo')
+            ->assert('isBacked')->toBeTrue()
+            ->assert('hasCase')->withArgument('case', 'Foo')->toBeTrue()
+            ->assert('isCloneable')->toBeFalse()
+            ->assert('isInternal')->toBeFalse()
+            ->assert('isUserDefined')->toBeTrue()
+            ->assert('isInNamespace')->toBeTrue()
+            ->assert('hasAttribute')->withArgument('attribute', Quux::class)->toBeTrue()
+            ->assert('hasConstant')->withArgument('constant', 'FRED')->toBeTrue()
+            ->assert('hasMethod')->withArgument('method', 'waldo')->toBeTrue()
+            ->assert('implementsInterface')->withArgument('interface', Baz::class)->toBeFalse()
+        ;
 
-    /**
-     * @return iterable<string, array{AssertionCaseBuilder}>
-     */
-    public static function provideAssertions(): iterable
-    {
-        yield 'isBacked' => [
-            AssertionCaseBuilder::createEnum(Grault::class)
-                ->withAssertion('isBacked'),
-        ];
-        yield 'hasCase' => [
-            AssertionCaseBuilder::createEnum(Grault::class)
-                ->withAssertion('hasCase')
-                ->withArgument('case', 'Foo'),
-        ];
-    }
-
-    #[DataProvider('provideAssertions')]
-    #[Group('assertions')]
-    public function testAssertions(AssertionCaseBuilder $assertionCaseBuilder): void
-    {
-        $this->assertAssertion($assertionCaseBuilder);
+        $this->assertContext($contextCase);
     }
 }

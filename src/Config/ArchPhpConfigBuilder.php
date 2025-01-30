@@ -6,7 +6,6 @@ namespace ArchPhp\Config;
 
 use ArchPhp\Context\ContextConfigurator;
 use ArchPhp\Context\ContextContainerBuilder;
-use ArchPhp\Rule\Rule;
 use ArchPhp\Assert\Assert;
 use Symfony\Component\Finder\Finder;
 
@@ -22,11 +21,6 @@ final class ArchPhpConfigBuilder
      */
     private array $skipPaths = [];
 
-    /**
-     * @var Rule[]
-     */
-    private array $rules = [];
-
     private ?string $contextsDir = null;
 
     public static function configure(): self
@@ -34,22 +28,11 @@ final class ArchPhpConfigBuilder
         return new self();
     }
 
-    public function setContextsDir(string $contextsDir): void
+    public function setContextsDir(string $contextsDir): self
     {
         Assert::directory($contextsDir);
 
         $this->contextsDir = $contextsDir;
-    }
-
-    /**
-     * @param array<array-key, mixed> $rules
-     * @return $this
-     */
-    public function withRules(array $rules): self
-    {
-        Assert::allIsInstanceOf($rules, Rule::class);
-
-        $this->rules = $rules;
 
         return $this;
     }
@@ -98,7 +81,6 @@ final class ArchPhpConfigBuilder
         $contextContainer->compile();
 
         return new ArchPhpConfig(
-            $this->rules,
             $this->paths,
             $this->skipPaths,
             $contextContainer,

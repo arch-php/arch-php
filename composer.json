@@ -28,12 +28,16 @@
         "rector/rector": "^2.0",
         "symplify/easy-coding-standard": "^12.5",
         "phpstan/phpstan-webmozart-assert": "^2.0",
-        "rector/type-perfect": "^2.0"
+        "rector/type-perfect": "^2.0",
+        "symfony/var-dumper": "^7.2"
     },
     "autoload": {
         "psr-4": {
             "ArchPhp\\": "src/"
-        }
+        },
+        "files": [
+            "src/Resources/functions.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {

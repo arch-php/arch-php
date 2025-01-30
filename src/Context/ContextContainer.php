@@ -12,9 +12,24 @@ final class ContextContainer
     private bool $compiled = false;
 
     /**
+     * @var array<string, ContextDefinition>
+     */
+    private readonly array $definitions;
+
+    /**
      * @param array<string, ContextDefinition> $definitions
      */
-    public function __construct(private readonly array $definitions) {}
+    public function __construct(array $definitions)
+    {
+        usort($definitions, static fn(ContextDefinition $a, ContextDefinition $b): int => $b->getPriority() <=> $a->getPriority());
+        $this->definitions = array_combine(
+            array_map(
+                static fn(ContextDefinition $definition): string => $definition->getId(),
+                $definitions,
+            ),
+            $definitions,
+        );
+    }
 
     public function getDefinition(string $id): ContextDefinition
     {
@@ -47,7 +62,7 @@ final class ContextContainer
             }
         }
 
-        throw new \RuntimeException(sprintf('No context found for value of type "%s".', get_debug_type($value)));
+        throw new \RuntimeException(sprintf('No context found for value of type "%s".', get_debug_type($value))); // @codeCoverageIgnore
     }
 
     public function guessType(Context $context): string
@@ -61,7 +76,7 @@ final class ContextContainer
                 }
             }
 
-            throw new \RuntimeException(sprintf('No context found for value of type "%s".', get_debug_type($context->getValue())));
+            throw new \RuntimeException(sprintf('No context found for value of type "%s".', get_debug_type($context->getValue()))); // @codeCoverageIgnore
         }
 
         if (0 === count($context->getValue())) {
