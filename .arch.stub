@@ -1,0 +1,28 @@
+<?php
+
+namespace ArchPhp\Rule {
+    /**
+     * @method static Rule classes()
+     * @method Rule that()
+     * @method Rule should()
+     * @method Rule namespace()
+     * @method Rule shortName()
+     * @method Rule startsWith(string $prefix)
+     * @method Rule endsWith(string $suffix)
+     * @method Rule methods()
+     * @method Rule or()
+     * @method Rule name()
+     * @method Rule isIdenticalTo(string $expected)
+     * @method Rule case()
+     * @method Rule when()
+     * @method Rule then()
+     * @method Rule else()
+     * @method Rule hasMethod(string $method)
+     * @method Rule method(string $method)
+     * @method Rule returnType()
+     * @method Rule class()
+     */
+    final class Rule
+    {
+    }
+}

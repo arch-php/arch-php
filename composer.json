@@ -1,0 +1,43 @@
+{
+    "name": "tboileau/arch-php",
+    "description": "Empower your codebase with architectural rules for consistency and clarity.",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Thomas Boileau",
+            "email": "tboileau.info@gmail.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+        "php": ">=8.3",
+        "symfony/string": "^7.2",
+        "symfony/finder": "^7.2",
+        "nikic/php-parser": "^5.4",
+        "webmozart/assert": "^1.11",
+        "brick/math": "^0.12.1",
+        "loophp/collection": "^7.6"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.5",
+        "phpstan/phpstan": "^2.1",
+        "phpstan/phpstan-deprecation-rules": "^2.0",
+        "phpstan/phpstan-phpunit": "^2.0",
+        "phpstan/phpstan-strict-rules": "^2.0",
+        "rector/rector": "^2.0",
+        "symplify/easy-coding-standard": "^12.5",
+        "phpstan/phpstan-webmozart-assert": "^2.0",
+        "rector/type-perfect": "^2.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "ArchPhp\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "ArchPhp\\Tests\\": "tests/"
+        }
+    }
+}
